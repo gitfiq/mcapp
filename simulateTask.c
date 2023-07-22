@@ -16,12 +16,19 @@ void lcdWriteDspData(char x);
 void lcdCtrl_SetPos(unsigned char row, unsigned char col);
 void lcdCtrl_ClearDisplay(void);
 
+void delay_Reoxygenation(unsigned int milisec);
+void delay_Motor(unsigned int milisec);
+
+extern unsigned int hrTime;
+
+extern int speaker_cnt;
 
 //Initialize labels
 void simulate_SetLabel(void){
     char message1[] = "Oxygen:";
     char message2[] = "ppm";
     char message3[] = "pH:";
+    char message4[] = "Hr:";
     unsigned int i;
     
     //Setting up the labels
@@ -33,18 +40,21 @@ void simulate_SetLabel(void){
     for(i = 0; message2[i] != 0; i++){
         lcdWriteDspData(message2[i]);
     }
-     lcdCtrl_SetPos(2,1);
+    lcdCtrl_SetPos(2,1);
     for(i = 0; message3[i] != 0; i++){
         lcdWriteDspData(message3[i]);
+    }
+    lcdCtrl_SetPos(2,9);
+    for(i = 0; message4[i] != 0; i++){
+        lcdWriteDspData(message4[i]);
     }
 }
 
 //Simulate Reoxygenation process
 void simulate_Reoxygenation(void){
-    int i;
     PORTBbits.RB2 = 1;
-    for(i = 0; i < 3; i++){ 
-        __delay_ms(150);
+    for(int i = 0; i < 3; i++){ 
+        delay_Reoxygenation(150);
         PORTB = LATB >> 1;
     }
     PORTBbits.RB0 = 0;
@@ -53,20 +63,38 @@ void simulate_Reoxygenation(void){
 }
 
 //on Speaker
-void simulate_alarm(void){
-    for (int a = 0; a <1000; a ++){
-        SPKR = 1;
-        __delay_us(200);
+void simulate_Alarm(void){
+//    for (int a = 0; a < 1000; a ++){
+//        SPKR = 1;
+//        __delay_us(500);
+//        SPKR = 0;
+//        __delay_us(500);
+//    }
+    T5CONbits.ON = 1;
+    CCP1CONbits.EN = 1;
+}
+
+void onSpeaker(void){
+    SPKR = 1;
+    if(speaker_cnt == 8){
+        T5CONbits.ON = 0;
+        CCP1CONbits.EN = 0;
         SPKR = 0;
-        __delay_us(200);
     }
+}
+
+//on Motor
+void simulate_Motor(void){
+    MOTOR = 1;
+    delay_Motor(3000);
+    MOTOR = 0;
 }
 
 //blink Red LED for warning of not suitable pH level and on speaker
 void simulate_BlinkAlertLED(void){
-    for(int i = 0; i <= 9; i++){
-        simulate_alarm();
-        PORTBbits.RB3 = ~LATBbits.LATB3;
+    for(int i = 0; i < 10; i++){
+        PORTBbits.RB3 = ~PORTBbits.RB3;
+        //simulate_Alarm();
     }
 }
 
@@ -79,10 +107,8 @@ void simulate_LowpH(void){
     for(int i = 0; pH[i] != 0; i++){
         lcdWriteDspData(pH[i]);
     }
-    MOTOR = 1;
-    simulate_BlinkAlertLED();
+    simulate_Motor();
     lcdCtrl_ClearDisplay();
-    MOTOR = 0;
 }
 
 //display on LCD high pH warning
@@ -94,8 +120,18 @@ void simulate_HighpH(void){
     for(int i = 0; pH[i] != 0; i++){
         lcdWriteDspData(pH[i]);
     }
-    MOTOR = 1;
-    simulate_BlinkAlertLED();
+    simulate_Motor();
     lcdCtrl_ClearDisplay();
-    MOTOR = 0;
+}
+
+void scheduled_Motor(void){
+    if(hrTime == 5){
+        simulate_Motor();
+        hrTime = 0;
+    }
+}
+
+void simulate_Warning(void){
+    //simulate_BlinkAlertLED();
+    simulate_Alarm();
 }
