@@ -1,0 +1,20 @@
+/*
+ * File:   ioc.c
+ * Author: ahmad
+ *
+ * Created on 18 July, 2023, 3:54 PM
+ */
+
+
+#include <xc.h>
+#include "config.h"
+
+void initSysIOC(void){
+    
+    //Switch
+    IOCAFbits.IOCAF0 = 0;
+    PIR0bits.IOCIF = 0;
+    PIE0bits.IOCIE = 1;
+    IOCAPbits.IOCAP4 = 1;
+    IOCANbits.IOCAN4 = 1;
+}
