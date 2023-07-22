@@ -29,9 +29,11 @@ void lcdCtrl_ClearDisplay(void);
 unsigned int adc_GetOxy(void);
 unsigned int get_pHcnt(void);
 
+unsigned int get_hrTime(void);
+
 void initLCD(void)
 {
-    __delay_ms(15); 
+    __delay_ms(10); 
     lcdWriteCtrlWord(0b00000011); 
     __delay_ms(5);
     lcdWriteCtrlWord(0b00000010); 
@@ -114,17 +116,30 @@ void lcdCtrl_ClearDisplay(void){
 void lcd_DspAll(void){
     
     unsigned int Oxycnt, pHcnt = 0;
-    unsigned char Oxydig0, Oxydig1, pHdig0, pHdig1;
+    char Oxydig0, Oxydig1, pHdig0, pHdig1;
+    
+    unsigned int hr = 0;
+    char hrdig0, hrdig1;
+    
+     //Getting hour
+    hr = get_hrTime();
+    hrdig0 = hr % 10;
+    hrdig1 = hr / 10;
     
     //Getting oxygen count
     Oxycnt  = adc_GetOxy();
     Oxydig0 = Oxycnt % 10;
-    Oxydig1 = Oxycnt / 10 % 10;
+    Oxydig1 = Oxycnt / 10;
         
     //Getting pH count
     pHcnt  = get_pHcnt();
     pHdig0 = pHcnt % 10;
-    pHdig1 = pHcnt / 10 % 10;
+    pHdig1 = pHcnt / 10 ;
+    
+    // Displaying hour Time on LCD
+    lcdCtrl_SetPos(2,13);
+    lcdWriteDspData(hrdig1 + 0x30);
+    lcdWriteDspData(hrdig0 + 0x30);
 
     //Displaying oxygen count on LCD
     lcdCtrl_SetPos(1,9);
