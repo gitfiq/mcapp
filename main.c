@@ -11,6 +11,9 @@
 
 void initSysPins(void);
 void initSysTimer(void);
+void initSysIOC(void);
+void initExtInt(void);
+void initCCP(void);
 void initADC(void);
 void initLCD(void);
 
@@ -19,12 +22,16 @@ void adc_GetConversion(void);
 void dspTask_OnLCD(void);
 void dspTask_OnSeg(void);
 
+void scheduled_Motor(void);
 void usrTask(void);
 
 void main(void) {
     
     initSysPins();
     initSysTimer();
+    initSysIOC();
+    initExtInt();
+    initCCP();
     initADC();
     initLCD();
     
@@ -35,6 +42,7 @@ void main(void) {
         dspTask_OnSeg();
 
         usrTask();
+        //scheduled_Motor();
     }
     return;
 }
@@ -46,7 +54,7 @@ void initSysPins(void){
     ANSELD = 0b00000000;
     ANSELE = 0b00000000;
     
-    TRISA = 0b11111111;
+    TRISA = 0b11110111;
     TRISB = 0b11000000;
     TRISC = 0b00000000;
     TRISD = 0b11000000;
