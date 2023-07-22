@@ -11,7 +11,8 @@
 
 #define SEV_SEG_PORT  PORTC
 
-int sevseg_Flag = 0;
+//to store the ADC temp value
+unsigned int tempcnt = 0;
 
 const unsigned char segTable[11] = {
     0b11000000, 0b11111001,
@@ -22,23 +23,23 @@ const unsigned char segTable[11] = {
     0b11111111 };
     
 //display the temperature value on the seven segment
-void seg_DspAll(unsigned int Temp){
-    int dig0, dig1;
-    
-    if(sevseg_Flag % 2 == 0){
-        SEV_SEG_PORT = segTable[10];
-        PORTEbits.RE1 = 0;
-        PORTEbits.RE0 = 1;
-        dig0 = Temp % 10;
-        SEV_SEG_PORT = segTable[dig0];
-    }
-    else{
-        SEV_SEG_PORT = segTable[10];
-        PORTEbits.RE1 = 1 ;
-        PORTEbits.RE0 = 0;
-        dig1 = Temp / 10;
-        SEV_SEG_PORT = segTable[dig1];
-    }
-    
+// Time critical task( will be displayed in the isr - Timer 1 )
+void sevseg_LSB(void){
+    SEV_SEG_PORT = segTable[10];
+    int dig0 = tempcnt % 10;
+    PORTEbits.RE1 = 0;
+    PORTEbits.RE0 = 1;
+    SEV_SEG_PORT = segTable[dig0];
 }
 
+void sevseg_MSB(void){
+    SEV_SEG_PORT = segTable[10];
+    int dig1 = tempcnt / 10;
+    PORTEbits.RE1 = 1;
+    PORTEbits.RE0 = 0;
+    SEV_SEG_PORT = segTable[dig1];
+}
+
+void getTemp_count(unsigned int gettempcnt){
+    tempcnt = gettempcnt;
+}
