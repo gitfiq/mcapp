@@ -9,13 +9,15 @@
 #include <xc.h>
 #include "config.h"
 
-#define SW0 PORTAbits.RA3
-#define SW1 PORTAbits.RA4
+#define PB7 PORTDbits.RD6
+#define PB8 PORTDbits.RD7
+#define SW4 PORTAbits.RA4
 
 void usrTask_CheckInputSW0(void);
 void usrTask_CheckInputSW1(void);
 
-unsigned pHcnt = 7;
+unsigned int pHcnt = 7;
+unsigned char emergencyState = 0;
 
 //called in main
 void usrTask(void){
@@ -25,9 +27,9 @@ void usrTask(void){
 
 //to check if the decrease pH push button is pressed
 void usrTask_CheckInputSW0(void){
-    if(SW0 == 0){
-        if(SW0 == 0){
-            while(SW0 == 0);
+    if(PB7 == 0){
+        if(PB7 == 0){
+            while(PB7 == 0);
             if(pHcnt < 14)
                 pHcnt++;
             else
@@ -39,9 +41,9 @@ void usrTask_CheckInputSW0(void){
 
 //to check if the increase pH push button is pressed
 void usrTask_CheckInputSW1(void){
-    if(SW1 == 0){
-        if(SW1 == 0){
-            while(SW1 == 0);
+    if(PB8 == 0){
+        if(PB8 == 0){
+            while(PB8 == 0);
             if(pHcnt > 0)
                 pHcnt--;
             else
@@ -51,7 +53,22 @@ void usrTask_CheckInputSW1(void){
     }
 }
 
+void usrTask_EmergencySwitch(void){
+    if(SW4 == 0){
+        emergencyState = 1;
+    }
+    else{
+        emergencyState = 0;
+    }
+    
+    PORTAbits.RA3 = emergencyState;
+}
+
 //returning the pH count
 unsigned int get_pHcnt(void){
     return pHcnt;
+}
+
+unsigned char get_emergencyState(void){
+    return(emergencyState);
 }
