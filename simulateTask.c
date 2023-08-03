@@ -165,8 +165,3 @@ void simulate_HighpH(void){
     delay_pHDsp(2700);                   // delay from timer 5 to match the timing of the motor
     lcdCtrl_ClearDisplay();
 }
-
-void simulate_Warning(void){
-    //simulate_BlinkAlertLED();
-    simulate_Alarm();
-}
