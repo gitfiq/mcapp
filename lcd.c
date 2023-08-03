@@ -121,7 +121,7 @@ void lcd_DspAll(void){
     unsigned int hr = 0;
     char hrdig0, hrdig1;
     
-     //Getting hour
+     //Getting hour count
     hr = get_hrTime();
     hrdig0 = hr % 10;
     hrdig1 = hr / 10;
@@ -136,7 +136,7 @@ void lcd_DspAll(void){
     pHdig0 = pHcnt % 10;
     pHdig1 = pHcnt / 10 ;
     
-    // Displaying hour Time on LCD
+    //Displaying hour count Time on LCD
     lcdCtrl_SetPos(2,13);
     lcdWriteDspData(hrdig1 + 0x30);
     lcdWriteDspData(hrdig0 + 0x30);
