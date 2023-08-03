@@ -6,9 +6,6 @@
  */
 
 
-#include <xc.h>
-#include "config.h"
-
 #define PB7 PORTDbits.RD6
 #define PB8 PORTDbits.RD7
 #define SW4 PORTAbits.RA4
@@ -16,6 +13,7 @@
 void usrTask_CheckInputSW0(void);
 void usrTask_CheckInputSW1(void);
 
+//Stable pH level
 unsigned int pHcnt = 7;
 unsigned char emergencyState = 0;
 
@@ -53,6 +51,7 @@ void usrTask_CheckInputSW1(void){
     }
 }
 
+//To set the emergencyState depending on the switch. Allows the Reoxygenation and Clearing waste when switch Off. Vice verse
 void usrTask_EmergencySwitch(void){
     if(SW4 == 0){
         emergencyState = 1;
@@ -61,7 +60,7 @@ void usrTask_EmergencySwitch(void){
         emergencyState = 0;
     }
     
-    PORTAbits.RA3 = emergencyState;
+    PORTEbits.RE2 = emergencyState;
 }
 
 //returning the pH count
@@ -69,6 +68,8 @@ unsigned int get_pHcnt(void){
     return pHcnt;
 }
 
+//returning the emergencyState value
 unsigned char get_emergencyState(void){
     return(emergencyState);
 }
+
