@@ -74,7 +74,7 @@ void simulate_Reoxygenation(void){
 
 //on warning functions (called when external interrupt occurs)
 void simulate_OnWarning(void){
-    T2CONbits.ON = 1;                           //On the timer 3
+    T2CONbits.ON = 1;                           //On the timer 2
     CCP1CONbits.EN = 1;                         //Enable the CCP1
     alarm_cnt = 0;                              //Set the alarm count to 0 everytime this function is call
     warnFlag = 1;                               //Set the warn flag to 0 everytime this function is call
