@@ -9,23 +9,25 @@
 #include <xc.h>
 #include "config.h"
 
-//toggle_Reoxygenation is to keep track of timer 3 
-//delayFlag_Reoxygenation is triggered to stop the while loop in the delay_150ms
-//targetdelay_Reoxygenation is used to store the milisec value from the simulate task file
-unsigned int toggle_CntReoxygenation, delayFlag_Reoxygenation, targetdelay_Reoxygenation = 0;
+unsigned int toggle_CntReoxygenation, delayFlag_Reoxygenation, targetdelay_Reoxygenation = 0;           //toggle_Reoxygenation is to keep track of timer 3 
+                                                                                                        //delayFlag_Reoxygenation is triggered to stop the while loop in the delay_Reoxygenation()
+                                                                                                        //targetdelay_Reoxygenation is used to store the milisec value from the simulate task file
 
-unsigned int toggle_CntMotor, delayFlag_Motor, targetdelay_Motor = 0;
+unsigned int toggle_CntpHDsp, delayFlag_pHDsp, targetdelay_pHDsp = 0;                                   //toggle_pHDsp is to keep track of timer 5 
+                                                                                                        //delayFlag_pHDsp is triggered to stop the while loop in the delay_pHDsp()
+                                                                                                        //targetdelay_pHDsp is used to store the milisec value from the simulate task file
 
-unsigned int minTime = 0;
-unsigned int hrTime = 0;
+unsigned int minTime = 0;               //to track the min time
+unsigned int hrTime = 0;                //to track the Hr time (display on LCD)
 
-int speaker_cnt = 0;
+int alarm_cnt = 0;                      //track the alarm count
+int motor_cnt = 0;                      //track the motor count
 
 void initSysTimer(void){
     INTCONbits.GIE = 0;
     INTCONbits.PEIE = 0;
     
-    //Timer 0 is set to 0.5 s to on the motor at every scheduled  interval 
+    //Timer 0 is set to 0.5 s to on the motor at every scheduled interval ( 5hrs - 2.5 min )
     T0CON0 = 0b10010000;
     T0CON1 = 0b01000011;
     PIR0bits.TMR0IF = 0;
@@ -37,13 +39,25 @@ void initSysTimer(void){
     PIR4bits.TMR1IF = 0;
     PIE4bits.TMR1IE = 1;
     
-    //Timer 3 set to 1 ms to be the base delay for 150 ms 
+    //Timer 2 set to 15 ms for the speaker (CCP1)
+    T2CLKbits.CS = 0b0001;
+    T2CON = 0b00111110;         // disable timer 2 ,prescaler value - 8 , postscaler value - 15
+    PIR4bits.TMR2IF = 0;
+    PIE4bits.TMR2IE = 1;
+    
+    //Timer 3 set to 1 ms to be the base delay for Reoxygenation 
     T3CLKbits.CS = 0b0001;
     T3CON = 0b00000010;
     PIR4bits.TMR3IF = 0;
     PIE4bits.TMR3IE = 1;
     
-    //Timer 5 set to 0.5 s for the Speaker
+    //Timer 4 set 30 ms for motor (CCP2)
+    T4CLKbits.CS = 0b0001;
+    T4CON = 0b00111110;         // disable timer 4 ,prescaler value - 8 , postscaler value - 15
+    PIR4bits.TMR4IF = 0;
+    PIE4bits.TMR4IE = 1;
+    
+    //Timer 5 set to 1 ms for the base delay for pH display
     T5CLKbits.CS = 0b0001;
     T5CON = 0b00000010;
     PIR4bits.TMR5IF = 0;
@@ -53,7 +67,8 @@ void initSysTimer(void){
     INTCONbits.GIE = 1;
 }
 
-void Incr_minTime(void)
+//called in isr to increase the min and Hr time accordingly
+void incr_MinHrTime(void)
 {
     if(minTime < 60){
         minTime++;
@@ -64,11 +79,13 @@ void Incr_minTime(void)
     }
 }
 
+//returns the Hr time
 unsigned int get_hrTime(void)
 {
     return(hrTime);
 }
 
+//called in simulate task to allow to set the desired delay (Reoxygenation)
 void delay_Reoxygenation(unsigned int milisec){
     delayFlag_Reoxygenation = 0;
     targetdelay_Reoxygenation = milisec;
@@ -80,23 +97,37 @@ void delay_Reoxygenation(unsigned int milisec){
     T3CONbits.ON = 0;
 }
 
-void delay_Motor(unsigned int milisec){
-    delayFlag_Motor = 0;
-    targetdelay_Motor = milisec;
+//called in simulate task to allow to set the desired delay (pH warning display)
+void delay_pHDsp(unsigned int milisec){
+    delayFlag_pHDsp = 0;
+    targetdelay_pHDsp = milisec;
     
-    T3CONbits.ON = 1;
+    T5CONbits.ON = 1;
     
-    while(!delayFlag_Motor);
+    while(!delayFlag_pHDsp);
     
-    T3CONbits.ON = 0;
+    T5CONbits.ON = 0;
 }
 
-void incr_Speakercnt(void){
-    if(speaker_cnt <= 8){
-        speaker_cnt++;
+//called in isr to increase alarm count accordingly (timer 2)
+void incr_Alarmcnt(void){
+    if(alarm_cnt <= 1000){
+        alarm_cnt++;
     }
     else{
-        speaker_cnt = 0;
+        CCP1CONbits.EN = 0;         //disable CCP1 
+        T2CONbits.ON = 0;           //disable Timer 2 to stop counting
+    }
+}
+
+//called in isr to increase motor count accordingly (timer 4)
+void incr_Motorcnt(void){
+    if(motor_cnt <= 100){
+        motor_cnt++;
+    }
+    else{
+        CCP2CONbits.EN = 0;         //disable CCP2           
+        T4CONbits.ON = 0;           //disable Timer 4 to stop counting
     }
 }
 
