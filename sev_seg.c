@@ -40,6 +40,7 @@ void sevseg_MSB(void){
     SEV_SEG_PORT = segTable[dig1];
 }
 
+//Getting the ADC value
 void getTemp_count(unsigned int gettempcnt){
     tempcnt = gettempcnt;
 }
